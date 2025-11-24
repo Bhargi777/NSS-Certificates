@@ -212,11 +212,16 @@
         const message = document.getElementById('message');
 
         // MESSAGE HELPERS
-        function showMessage(text, type) {
-            message.textContent = text;
+        function showMessage(text, type, htmlMode=false) {
             message.className = `message ${type} show`;
             message.style.display = 'block';
+            if (htmlMode) {
+                message.innerHTML = text;
+            } else {
+                message.textContent = text;
+            }
         }
+
         function hideMessage() {
             message.className = 'message';
             message.style.display = 'none';
@@ -265,9 +270,14 @@
                 // Fetch certificate
                 const certificateUrl = await getCertificate(rollNumber);
                 showMessage(
-                    `Certificate found for ${rollNumber}! <a href="${certificateUrl}" class="btn" style="margin-top:10px;" download>Download Certificate PDF</a>`, 
-                    'success'
+                    `Certificate found for ${rollNumber}!<br>
+                    <a href="${certificateUrl}" class="btn" style="margin-top:10px;display:inline-block;" download>
+                        Download Certificate PDF
+                    </a>`, 
+                    'success', 
+                    true       // this enables innerHTML rendering!
                 );
+
             } catch (error) {
                 showMessage(error.message, 'error');
             } finally {
