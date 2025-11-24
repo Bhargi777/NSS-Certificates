@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Certificate Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fff;
+            padding: 20px;
+            color: #13343b;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #21808d;
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dedede;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #21808d;
+        }
+        .stat-label {
+            color: #626c71;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .tab.active {
+            background: #21808d;
+            color: white;
+        }
+        .table-container {
+            background: white;
+            border: 1px solid #dedede;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 600px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 12px;
+            border-top: 1px solid #eee;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .download-btn, .back-btn {
+            padding: 10px 20px;
+            background: #21808d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .download-btn:hover, .back-btn:hover {
+            background: #1d7480;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 3px solid rgba(33, 128, 141, 0.2);
+            border-top: 3px solid #21808d;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .search-box {
+            padding: 10px;
+            border: 1px solid #dedede;
+            border-radius: 6px;
+            width: 300px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin Dashboard - Certificate Tracker</h1>
+        <p style="color: #626c71;">NSS Anti-Drug Awareness Marathon</p>
+        
+        <a href="index.html" class="back-btn">← Back to Certificate Portal</a>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">-</div>
+                <div class="stat-label">Total Participants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="downloadedCount">-</div>
+                <div class="stat-label">Downloaded</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">-</div>
+                <div class="stat-label">Not Downloaded</div>
+            </div>
+        </div>
+
+        <input type="text" id="searchBox" class="search-box" placeholder="Search by roll number or name...">
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('downloaded')">Downloaded</button>
+            <button class="tab" onclick="showTab('pending')">Not Downloaded</button>
+            <button class="tab" onclick="showTab('all')">All Participants</button>
+        </div>
+
+        <button class="download-btn" onclick="exportToCSV()">📥 Export to CSV</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading data...</p>
+        </div>
+
+        <div class="table-container" id="tableContainer" style="display:none;">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Roll Number</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Downloaded At</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCZZdmmCCZtq0YkMJ2rihL0l-jd6ulWvyc",
+            authDomain: "certificates-nss-67fa9.firebaseapp.com",
+            projectId: "certificates-nss-67fa9",
+            storageBucket: "certificates-nss-67fa9.appspot.com",
+            messagingSenderId: "757768571172",
+            appId: "1:757768571172:web:462a42300da205e3810bb1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allParticipants = [];
+        let downloads = [];
+        let currentTab = 'downloaded';
+
+        // Load all participants from your CSV or Firestore
+        // For now, using a sample list - replace with your actual data source
+        async function loadAllParticipants() {
+            // Option 1: Load from a separate Firestore collection
+            // Option 2: Parse from uploaded CSV
+            // For demo, using hardcoded data:
+            return [
+                { roll_no: 'CB.SC.U4CSE24211', name: 'Student One' },
+                { roll_no: 'CB.SC.U4CSE24268', name: 'Bhargava Sri Sai' },
+                // Add all your participants here or load from Firestore
+            ];
+        }
+
+        async function loadDownloads() {
+            const querySnapshot = await getDocs(collection(db, "downloads"));
+            const downloadList = [];
+            querySnapshot.forEach((doc) => {
+                downloadList.push(doc.data());
+            });
+            return downloadList;
+        }
+
+        async function loadData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+
+            allParticipants = await loadAllParticipants();
+            downloads = await loadDownloads();
+
+            updateStats();
+            renderTable();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+        }
+
+        function updateStats() {
+            const downloadedRollNos = new Set(downloads.map(d => d.roll_no));
+            const totalCount = allParticipants.length;
+            const downloadedCount = downloadedRollNos.size;
+            const pendingCount = totalCount - downloadedCount;
+
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('downloadedCount').textContent = downloadedCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+        }
+
+        function renderTable() {
+            const downloadedRollNos = new Set(downloads.map(d => d.roll_no));
+            const downloadMap = {};
+            downloads.forEach(d => {
+                downloadMap[d.roll_no] = d.timestamp;
+            });
+
+            let filteredData = [];
+            
+            if (currentTab === 'downloaded') {
+                filteredData = allParticipants.filter(p => downloadedRollNos.has(p.roll_no));
+            } else if (currentTab === 'pending') {
+                filteredData = allParticipants.filter(p => !downloadedRollNos.has(p.roll_no));
+            } else {
+                filteredData = allParticipants;
+            }
+
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+
+            filteredData.forEach(participant => {
+                const isDownloaded = downloadedRollNos.has(participant.roll_no);
+                const row = document.createElement('tr');
+                
+                const timestamp = downloadMap[participant.roll_no];
+                const dateStr = timestamp ? new Date(timestamp.seconds * 1000).toLocaleString() : '-';
+                
+                row.innerHTML = `
+                    <td>${participant.roll_no}</td>
+                    <td>${participant.name}</td>
+                    <td>${isDownloaded ? '✅ Downloaded' : '⏳ Pending'}</td>
+                    <td>${dateStr}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        window.showTab = function(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderTable();
+        };
+
+        window.exportToCSV = function() {
+            const downloadedRollNos = new Set(downloads.map(d => d.roll_no));
+            const downloadMap = {};
+            downloads.forEach(d => {
+                downloadMap[d.roll_no] = d.timestamp;
+            });
+
+            let csvContent = "Roll Number,Name,Status,Downloaded At\n";
+            
+            allParticipants.forEach(p => {
+                const isDownloaded = downloadedRollNos.has(p.roll_no);
+                const timestamp = downloadMap[p.roll_no];
+                const dateStr = timestamp ? new Date(timestamp.seconds * 1000).toLocaleString() : '-';
+                csvContent += `${p.roll_no},${p.name},${isDownloaded ? 'Downloaded' : 'Pending'},${dateStr}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `certificate_tracker_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        };
+
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        loadData();
+    </script>
+</body>
+</html>
