@@ -247,7 +247,7 @@
             </div>
             
             <h1>Anti-Drug Awareness Marathon Certificate</h1>
-            <p class="subtitle">Enter your details to download your e-certificate</p>
+            <p class="subtitle">Enter your roll number to download your e-certificate</p>
 
             <form id="certificateForm">
                 <div class="form-group">
@@ -259,16 +259,6 @@
                         required
                     >
                     <p class="help-text">Enter your roll number exactly as provided</p>
-                </div>
-
-                <div class="form-group">
-                    <label for="studentName">Name (as per university records)</label>
-                    <input 
-                        type="text" 
-                        id="studentName" 
-                        placeholder="Enter your full name"
-                        required
-                    >
                 </div>
 
                 <button type="submit" class="btn" id="submitBtn">Get Certificate</button>
@@ -314,7 +304,6 @@
         // ====================================
         const form = document.getElementById('certificateForm');
         const rollNumberInput = document.getElementById('rollNumber');
-        const studentNameInput = document.getElementById('studentName');
         const submitBtn = document.getElementById('submitBtn');
         const loading = document.getElementById('loading');
         const message = document.getElementById('message');
@@ -325,11 +314,6 @@
         // ====================================
         // VALIDATION FUNCTIONS
         // ====================================
-        function validateRollNumber(rollNumber) {
-            const pattern = /^CB\.[0-9]{2}\.UX2[0-9]{4}$/;
-            return pattern.test(rollNumber);
-        }
-
         function sanitizeInput(input) {
             return input.trim().toUpperCase();
         }
@@ -371,7 +355,7 @@
         // ====================================
         // CERTIFICATE RETRIEVAL
         // ====================================
-        async function getCertificate(rollNumber, studentName) {
+        async function getCertificate(rollNumber) {
             try {
                 const fileName = `${rollNumber}.pdf`;
                 const certificateRef = ref(storage, `certificates/${fileName}`);
@@ -384,7 +368,7 @@
                 console.error('Error fetching certificate:', error);
                 
                 if (error.code === 'storage/object-not-found') {
-                    throw new Error('Certificate not found. Please verify your roll number and name.');
+                    throw new Error('Certificate not found. Please verify your roll number.');
                 } else if (error.code === 'storage/unauthorized') {
                     throw new Error('Access denied. Please contact the administrator.');
                 } else {
@@ -402,13 +386,12 @@
             hideMessage();
             hideCertificate();
 
-            // Get and sanitize inputs
+            // Get and sanitize input
             const rollNumber = sanitizeInput(rollNumberInput.value);
-            const studentName = sanitizeInput(studentNameInput.value);
 
-            // Validate name (at least 2 characters)
-            if (studentName.length < 2) {
-                showMessage('Please enter a valid name', 'error');
+            // Validate roll number (at least 3 characters)
+            if (rollNumber.length < 3) {
+                showMessage('Please enter a valid roll number', 'error');
                 return;
             }
 
@@ -417,7 +400,7 @@
 
             try {
                 // Fetch certificate from Firebase Storage
-                const certificateUrl = await getCertificate(rollNumber, studentName);
+                const certificateUrl = await getCertificate(rollNumber);
 
                 // Show success message and certificate
                 showMessage('Certificate found! Click the button below to download.', 'success');
@@ -434,11 +417,6 @@
         // INPUT FORMATTING
         // ====================================
         rollNumberInput.addEventListener('input', (e) => {
-            // Convert to uppercase for consistency
-            e.target.value = e.target.value.toUpperCase();
-        });
-
-        studentNameInput.addEventListener('input', (e) => {
             // Convert to uppercase for consistency
             e.target.value = e.target.value.toUpperCase();
         });
