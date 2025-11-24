@@ -39,7 +39,6 @@
 
     document.getElementById('certForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       result.innerHTML = "Checking...";
 
       const form = new FormData(e.target);
@@ -49,7 +48,7 @@
       };
 
       try {
-        const res = await fetch('/.netlify/functions/getCert', {
+        const res = await fetch('/getCert', {           // Hosting rewrite -> Cloud Function
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
@@ -60,13 +59,14 @@
         if (res.ok && json.url) {
           result.innerHTML = `
             <p class="ok">Certificate Found!</p>
-            <a href="${json.url}" target="_blank">Download Certificate</a>
+            <a href="${json.url}" target="_blank" rel="noopener">Download Certificate</a>
           `;
         } else {
           result.innerHTML = `<p class="error">${json.error || "Not found"}</p>`;
         }
 
       } catch (err) {
+        console.error(err);
         result.innerHTML = `<p class="error">Server Error — Try again later</p>`;
       }
     });
