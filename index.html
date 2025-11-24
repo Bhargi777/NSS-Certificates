@@ -291,13 +291,13 @@
             appId: "1:757768571172:web:462a42300da205e3810bb1"
         };
 
+        // Import Firebase modules from CDN
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-        import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const storage = getStorage(app);
-        const db = getFirestore(app);
 
         // ====================================
         // DOM ELEMENTS
@@ -311,8 +311,12 @@
         const certificateImage = document.getElementById('certificateImage');
         const downloadBtn = document.getElementById('downloadBtn');
 
-        // ADMIN ROLL NUMBER
-        const ADMIN_ROLL_NO = '24269';
+        // ====================================
+        // VALIDATION FUNCTIONS
+        // ====================================
+        function sanitizeInput(input) {
+            return input.trim().toUpperCase();
+        }
 
         // ====================================
         // UI HELPER FUNCTIONS
@@ -349,27 +353,16 @@
         }
 
         // ====================================
-        // LOG DOWNLOAD
-        // ====================================
-        async function logDownload(rollNumber) {
-            try {
-                await addDoc(collection(db, "downloads"), {
-                    roll_no: rollNumber,
-                    timestamp: serverTimestamp()
-                });
-            } catch (error) {
-                console.error('Error logging download:', error);
-            }
-        }
-
-        // ====================================
         // CERTIFICATE RETRIEVAL
         // ====================================
         async function getCertificate(rollNumber) {
             try {
                 const fileName = `${rollNumber}.pdf`;
                 const certificateRef = ref(storage, `certificates/${fileName}`);
+
+                // Get download URL
                 const downloadUrl = await getDownloadURL(certificateRef);
+                
                 return downloadUrl;
             } catch (error) {
                 console.error('Error fetching certificate:', error);
@@ -393,30 +386,23 @@
             hideMessage();
             hideCertificate();
 
-            const rollNumber = rollNumberInput.value.trim().toUpperCase();
+            // Get and sanitize input
+            const rollNumber = sanitizeInput(rollNumberInput.value);
 
-            // CHECK FOR ADMIN LOGIN
-            if (rollNumber === ADMIN_ROLL_NO) {
-                showLoading();
-                setTimeout(() => {
-                    window.location.href = 'admin.html';
-                }, 500);
-                return;
-            }
-
+            // Validate roll number (at least 3 characters)
             if (rollNumber.length < 3) {
                 showMessage('Please enter a valid roll number', 'error');
                 return;
             }
 
+            // Show loading state
             showLoading();
 
             try {
+                // Fetch certificate from Firebase Storage
                 const certificateUrl = await getCertificate(rollNumber);
-                
-                // Log the download
-                await logDownload(rollNumber);
-                
+
+                // Show success message and certificate
                 showMessage('Certificate found! Click the button below to download.', 'success');
                 showCertificate(certificateUrl, certificateUrl);
 
@@ -427,7 +413,11 @@
             }
         });
 
+        // ====================================
+        // INPUT FORMATTING
+        // ====================================
         rollNumberInput.addEventListener('input', (e) => {
+            // Convert to uppercase for consistency
             e.target.value = e.target.value.toUpperCase();
         });
     </script>
