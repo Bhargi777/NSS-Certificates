@@ -199,16 +199,13 @@
         // Load all participants from your CSV or Firestore
         // For now, using a sample list - replace with your actual data source
         async function loadAllParticipants() {
-            // Option 1: Load from a separate Firestore collection
-            // Option 2: Parse from uploaded CSV
-            // For demo, using hardcoded data:
-            return [
-                { roll_no: 'CB.SC.U4CSE24211', name: 'Student One' },
-                { roll_no: 'CB.SC.U4CSE24268', name: 'Bhargava Sri Sai' },
-                // Add all your participants here or load from Firestore
-            ];
+            const querySnapshot = await getDocs(collection(db, "participants"));
+            const participants = [];
+            querySnapshot.forEach((doc) => {
+                participants.push(doc.data());
+            });
+            return participants;
         }
-
         async function loadDownloads() {
             const querySnapshot = await getDocs(collection(db, "downloads"));
             const downloadList = [];
