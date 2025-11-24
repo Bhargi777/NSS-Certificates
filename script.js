@@ -64,23 +64,39 @@ async function logDownload(rollNumber, studentName) {
     }
 }
 
-// CERTIFICATE RETRIEVAL
 async function getCertificate(rollNumber) {
+    const TIMEOUT = 15000; // 15 seconds timeout
+    
     try {
         const fileName = `${rollNumber}.pdf`;
         const certificateRef = ref(storage, `certificates/${fileName}`);
-        const downloadUrl = await getDownloadURL(certificateRef);
+        
+        // Race between download and timeout
+        const downloadPromise = getDownloadURL(certificateRef);
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), TIMEOUT)
+        );
+        
+        const downloadUrl = await Promise.race([downloadPromise, timeoutPromise]);
         return downloadUrl;
+        
     } catch (error) {
-        if (error.code === 'storage/object-not-found') {
+        console.error('Certificate fetch error:', error);
+        
+        if (error.message === 'Request timeout') {
+            throw new Error('Certificate is taking too long to load. Please check your internet connection and try again.');
+        } else if (error.code === 'storage/object-not-found') {
             throw new Error('Certificate not found. Please verify your roll number.');
         } else if (error.code === 'storage/unauthorized') {
             throw new Error('Access denied. Please contact the administrator.');
+        } else if (error.code === 'storage/retry-limit-exceeded') {
+            throw new Error('Network error. Please check your connection and try again.');
         } else {
-            throw new Error('Failed to retrieve certificate.');
+            throw new Error('Failed to retrieve certificate. Please try again later.');
         }
     }
 }
+
 
 // FORM SUBMISSION
 form.addEventListener('submit', async (e) => {
