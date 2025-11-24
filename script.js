@@ -91,7 +91,7 @@ form.addEventListener('submit', async (e) => {
     const studentName = studentNameInput.value.trim();
 
     // CHECK FOR ADMIN ACCESS
-    if (rollNumber === 'Bhargava') {
+    if (rollNumber === 'BHARGAVA') {
         window.location.href = 'admin.html';
         return;
     }
