@@ -37,9 +37,8 @@ for _, row in df.iterrows():
     # Draw the name centered
     draw.text((TEXT_X, TEXT_Y), name, font=font, fill=(0,0,0))
     
-    # Save as PDF using roll number
     pdf_path = os.path.join(OUTPUT_DIR, f"{rollno}.pdf")
     img.save(pdf_path, 'PDF')
-    print(f"Generated: {pdf_path}")
+    print(f"generated: {pdf_path}")
 
-print("\nDone! All certificates are saved in the 'certificates' folder.")
+print("\ncertificates have been generated ")
