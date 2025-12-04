@@ -4,7 +4,7 @@ import os
 
 TEMPLATE_PATH = 'certificate.png'
 CSV_PATH = 'students.csv'
-FONT_PATH = "/Library/Fonts/Arial.ttf"   # CHANGE to your system's .ttf path
+FONT_PATH = "/Library/Fonts/constan.ttf"   # CHANGE to your system's .ttf path
 FONT_SIZE = 42
 
 TEXT_Y = 350  # Y-position of the name line (tweak to match your template)
