@@ -1,7 +1,7 @@
 import csv
 
 input_file = "roll_numbers.csv"
-output_file = "converted_rollnumbers.csv"
+output_file = "conv_roll.csv"
 
 with open(input_file, "r") as infile, open(output_file, "w",newline='') as outfile:
     reader = csv.reader(infile)

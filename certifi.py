@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 TEMPLATE_PATH = 'certificate.png'
-CSV_PATH = 'students.csv'
+CSV_PATH = 'certificate.csv'
 FONT_PATH = "/Library/Fonts/constan.ttf"   # CHANGE to your system's .ttf path
 FONT_SIZE = 42
 
