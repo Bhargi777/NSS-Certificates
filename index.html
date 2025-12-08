@@ -283,14 +283,14 @@
         // FIREBASE CONFIGURATION
         // ====================================
         const firebaseConfig = {
-            apiKey: "AIzaSyBVCZICqDWgB9blEWkYrpEPjwhnml8KVc0",
-            authDomain: "volunteer-68b4d.firebaseapp.com",
-            projectId: "volunteer-68b4d",
-            storageBucket: "volunteer-68b4d.firebasestorage.app",
-            messagingSenderId: "428909514474",
-            appId: "1:428909514474:web:b3c2926646e5a20730d193",
-            measurementId: "G-12MYBJYH8L"
-        };
+  apiKey: "AIzaSyBVCZICqDWgB9blEWkYrpEPjwhnml8KVc0",
+  authDomain: "volunteer-68b4d.firebaseapp.com",
+  projectId: "volunteer-68b4d",
+  storageBucket: "volunteer-68b4d.firebasestorage.app",
+  messagingSenderId: "428909514474",
+  appId: "1:428909514474:web:b3c2926646e5a20730d193",
+  measurementId: "G-12MYBJYH8L"
+};
 
         // Import Firebase modules from CDN
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -298,6 +298,7 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const storage = getStorage(app);
 
         // ====================================

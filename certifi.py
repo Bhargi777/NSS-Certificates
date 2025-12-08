@@ -2,13 +2,13 @@ from PIL import Image, ImageDraw, ImageFont
 import pandas as pd
 import os
 
-TEMPLATE_PATH = 'certificate.png'
+TEMPLATE_PATH = 'vcertificate.png'
 CSV_PATH = 'certificate.csv'
 FONT_PATH = "/Library/Fonts/constan.ttf"   # CHANGE to your system's .ttf path
-FONT_SIZE = 42
+FONT_SIZE = 80
 
 TEXT_Y = 350  # Y-position of the name line (tweak to match your template)
-OUTPUT_DIR = 'certificates'
+OUTPUT_DIR = 'certificates/UNIT 5'
 
 # Create output folder
 if not os.path.exists(OUTPUT_DIR):
@@ -33,7 +33,7 @@ for _, row in df.iterrows():
     h = bbox[3] - bbox[1]
 
     TEXT_X = (W - w) / 2  # Center horizontally
-    TEXT_Y = 420
+    TEXT_Y = 640
     # Draw the name centered
     draw.text((TEXT_X, TEXT_Y), name, font=font, fill=(0,0,0))
     
