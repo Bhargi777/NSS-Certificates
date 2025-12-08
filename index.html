@@ -352,7 +352,8 @@
     async function getCertificate(rollNumber) {
         try {
             const fileName = `${rollNumber}.pdf`;
-            const certificateRef = ref(storage, `certificates/${fileName}`);
+            const certificateRef = ref(storage, fileName);
+
 
             // Get download URL
             const downloadUrl = await getDownloadURL(certificateRef);
